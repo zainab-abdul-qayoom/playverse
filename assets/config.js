@@ -7,8 +7,8 @@ window.PLAYVERSE_CONFIG = {
   /* 1. Supabase keys  (Supabase > Project Settings > API)
         Use the "Project URL" and the "anon public" key.
         NEVER paste the "service_role" key here. */
-  SUPABASE_URL: "PASTE_YOUR_SUPABASE_URL_HERE",
-  SUPABASE_ANON_KEY: "PASTE_YOUR_SUPABASE_ANON_KEY_HERE",
+  SUPABASE_URL: "https://ydnmvyzrhskwhkeioket.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_n_ZE0v3AZm0Q3-dbW-GkFA_-z0GoJr1",
 
   /* 2. Event */
   EVENT_NAME: "PlayVerse",
