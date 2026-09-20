@@ -7,6 +7,10 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const EVENT = CFG.EVENT_NAME || "PlayVerse";
 const sb = getClient({ persist: false });
+/* Game artwork: drop bg-<game>.jpg into /assets to override the built-in bg-<game>.svg */
+const BRAND = { pubg: "#E0A03A", tekken: "#D64550", fifa: "#6FA8D6", "mini-militia": "#3FA34D", "mafia-wars": "#B8BDC6" };
+const POS = { pubg: "50% 38%", tekken: "50% 72%", fifa: "50% 62%", "mini-militia": "50% 78%", "mafia-wars": "50% 28%" };
+const art = (slug) => `url(/assets/bg-${slug}.jpg), url(/assets/bg-${slug}.svg)`;
 
 const logo = $("#logo");
 if (logo) logo.innerHTML = logoMark(32);
@@ -20,12 +24,17 @@ const feeText = (row, g) => (row && row.fee != null ? money(row.fee) + (g.type =
 
 /* ---------------- Landing ---------------- */
 async function landing() {
+  const h = $(".hero-landing h1");
+  if (h) h.textContent = "Welcome to " + EVENT;
+  const inner = $(".hero-landing .hero-inner");
+  if (inner) inner.insertAdjacentHTML("beforeend", `<img class="hero-art" src="/assets/playverse-hero.jpg" width="820" height="655" alt="PlayVerse: different games, one universe">`);
   const by = Object.fromEntries((await fetchGames()).map((r) => [r.slug, r]));
   $("#games").innerHTML = GAMES.map((g, i) => {
     const r = by[g.slug];
     const open = !r || r.is_open;
     const fee = feeText(r, g);
-    return `<a class="gcard${i < 2 ? " big" : ""}" style="--accent:${g.color}" href="/register/${g.slug}">
+    return `<a class="gcard" style="--accent:${BRAND[g.slug] || g.color}" href="/register/${g.slug}">
+      <span class="gart" style="--hero-img:${art(g.slug)};--hero-pos:${POS[g.slug]}"></span>
       <span class="gtile">${icon(g.icon, 26)}</span>
       <h2>${esc(g.name)}</h2>
       <p>${esc(g.blurb)}</p>
@@ -48,7 +57,9 @@ async function form() {
   if (!meta) { app.innerHTML = `<div class="card center-card"><h2>Game not found</h2><p class="hint">Go back and choose a game.</p></div>`; return; }
 
   document.title = `${meta.name} registration | ${EVENT}`;
-  document.documentElement.style.setProperty("--accent", meta.color);
+  document.documentElement.style.setProperty("--accent", BRAND[slug] || meta.color);
+  $(".hero").style.setProperty("--hero-img", art(slug));
+  $(".hero").style.setProperty("--hero-pos", POS[slug]);
   const isTeam = meta.type === "team";
   const players = isTeam ? [1, 2, 3, 4] : [1];
 
@@ -135,6 +146,7 @@ async function form() {
       const d = val(`p${n}-dept`);
       add(d && (d !== "__other" || val(`p${n}-dept-other`).trim()));
       add(val(`p${n}-phone`).trim());
+      add(val(`p${n}-email`).trim());
     });
     if (isTeam) add(val("team").trim());
     add(receipt.getFile());

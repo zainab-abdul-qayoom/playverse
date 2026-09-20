@@ -1,5 +1,5 @@
 /* Reusable form pieces: used by the public forms and the CRM on-spot form */
-import { CFG, esc, icon, normalizePhone, formatPhone, normalizeRoll, validName, cleanText } from "./common.js";
+import { CFG, esc, icon, normalizePhone, formatPhone, normalizeRoll, validName, cleanText, normalizeEmail } from "./common.js";
 
 /* ---------- Errors ---------- */
 export function setError(id, msg) {
@@ -49,6 +49,7 @@ export function personBlockHTML(prefix, { autofill = false } = {}) {
     ${fieldHTML({ id: `${prefix}-roll`, label: "Roll number", placeholder: "e.g. 25BSCS016", hint: "Letters, numbers, - and / only.", attrs: 'maxlength="30" autocapitalize="characters" spellcheck="false"' })}
     ${deptFieldHTML(prefix)}
     ${fieldHTML({ id: `${prefix}-phone`, label: "Contact number", type: "tel", placeholder: "03XX XXXXXXX", hint: "Pakistani mobile number.", autocomplete: autofill ? "tel" : "off", attrs: 'inputmode="tel" maxlength="20"' })}
+    ${fieldHTML({ id: `${prefix}-email`, label: "Email address", type: "email", placeholder: "you@example.com", autocomplete: autofill ? "email" : "off", attrs: 'inputmode="email" maxlength="120" autocapitalize="off" spellcheck="false"' })}
   </div>`;
 }
 
@@ -59,6 +60,7 @@ export function bindPerson(root, prefix, onChange) {
   const roll = $(`#${prefix}-roll`);
   const phone = $(`#${prefix}-phone`);
   const name = $(`#${prefix}-name`);
+  const email = $(`#${prefix}-email`);
 
   dept.addEventListener("change", () => {
     const isOther = dept.value === "__other";
@@ -91,6 +93,8 @@ export function bindPerson(root, prefix, onChange) {
     clearError(`${prefix}-name`);
     onChange && onChange();
   });
+  email.addEventListener("input", () => { clearError(`${prefix}-email`); onChange && onChange(); });
+  email.addEventListener("blur", () => email.value && !normalizeEmail(email.value) && setError(`${prefix}-email`, "Enter a valid email, e.g. name@example.com."));
   // inline validation when leaving a field
   name.addEventListener("blur", () => name.value && !validName(name.value) && setError(`${prefix}-name`, "Use letters only (2–80 characters)."));
   roll.addEventListener("blur", () => roll.value && !normalizeRoll(roll.value) && setError(`${prefix}-roll`, "Enter a valid roll number, e.g. 25BSCS016."));
@@ -105,6 +109,7 @@ export function readPerson(root, prefix) {
     roll_number: ($(`#${prefix}-roll`).value || "").replace(/\s+/g, "").toUpperCase(),
     department: d === "__other" ? cleanText($(`#${prefix}-dept-other`).value) : d,
     contact: normalizePhone($(`#${prefix}-phone`).value) || $(`#${prefix}-phone`).value.trim(),
+    email: normalizeEmail($(`#${prefix}-email`).value) || ($(`#${prefix}-email`).value || "").trim(),
   };
 }
 
@@ -130,7 +135,11 @@ export function validatePerson(root, prefix) {
   if (!phoneV.trim()) errs.push({ id: `${prefix}-phone`, msg: "Enter a contact number." });
   else if (!normalizePhone(phoneV)) errs.push({ id: `${prefix}-phone`, msg: "Enter a valid mobile number, e.g. 0312 3456789." });
 
-  ["name", "roll", "dept", "phone"].forEach((k) => clearError(`${prefix}-${k}`));
+  const emailV = $(`#${prefix}-email`).value;
+  if (!emailV.trim()) errs.push({ id: `${prefix}-email`, msg: "Enter an email address." });
+  else if (!normalizeEmail(emailV)) errs.push({ id: `${prefix}-email`, msg: "Enter a valid email, e.g. name@example.com." });
+
+  ["name", "roll", "dept", "phone", "email"].forEach((k) => clearError(`${prefix}-${k}`));
   errs.forEach((e) => setError(e.id, e.msg));
   return errs;
 }

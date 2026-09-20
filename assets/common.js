@@ -39,6 +39,11 @@ export function normalizeRoll(raw) {
   return /^[A-Z0-9][A-Z0-9/-]{2,29}$/.test(r) ? r : null;
 }
 
+export function normalizeEmail(raw) {
+  const e = String(raw ?? "").trim().toLowerCase();
+  return /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(e) ? e : null;
+}
+
 export const cleanText = (s) => String(s ?? "").replace(/\s+/g, " ").trim();
 export function validName(raw) {
   const s = cleanText(raw);
